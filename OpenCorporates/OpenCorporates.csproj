@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{014AB04F-258C-4230-8C14-57702FEE322D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>OpenCorporates</RootNamespace>
+    <AssemblyName>OpenCorporates</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Clients\AccountStatusClient.cs" />
+    <Compile Include="Clients\BaseClient.cs" />
+    <Compile Include="Clients\CompanyDetailClient.cs" />
+    <Compile Include="Clients\CompanyNetworkClient.cs" />
+    <Compile Include="Clients\ICompanyDetailClient.cs" />
+    <Compile Include="Json\IDefaultResolver.cs" />
+    <Compile Include="Models\BaseResponse.cs" />
+    <Compile Include="Models\BaseResult.cs" />
+    <Compile Include="Clients\CompanySearchClient.cs" />
+    <Compile Include="Models\CompanyResponse.cs" />
+    <Compile Include="Models\CompanyResult.cs" />
+    <Compile Include="Models\Entities\CompanyListItem.cs" />
+    <Compile Include="Models\Entities\CorporateGrouping.cs" />
+    <Compile Include="Models\Entities\CorporateGroupingListItem.cs" />
+    <Compile Include="Models\Entities\IndustryCode.cs" />
+    <Compile Include="Models\Entities\IndustryCodeListItem.cs" />
+    <Compile Include="Models\Entities\Officer.cs" />
+    <Compile Include="Models\Entities\OfficerListItem.cs" />
+    <Compile Include="Models\Entities\PreviousName.cs" />
+    <Compile Include="Models\Entities\RegisteredAddress.cs" />
+    <Compile Include="Models\CompanyListResponse.cs" />
+    <Compile Include="Models\Entities\Company.cs" />
+    <Compile Include="Models\CompanyListResult.cs" />
+    <Compile Include="Json\SnakeCasePropertyNamesContractResolver.cs" />
+    <Compile Include="Models\Entities\RelationshipProperties.cs" />
+    <Compile Include="Models\Entities\Source.cs" />
+    <Compile Include="Models\StatementResponse.cs" />
+    <Compile Include="Models\StatementResult.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
