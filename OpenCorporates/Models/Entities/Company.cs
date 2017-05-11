@@ -27,6 +27,6 @@ namespace OpenCorporates.Models.Entities
         public string RestrictedForMarketing { get; set; }
         public List<CorporateGroupingListItem> CorporateGroupings { get; set; }
         public List<OfficerListItem> Officers { get; set; }
-        public IndustryCodeListItem IndustryCodes { get; set; }
+        public List<IndustryCodeListItem> IndustryCodes { get; set; }
     }
 }

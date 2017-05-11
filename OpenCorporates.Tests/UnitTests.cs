@@ -13,9 +13,14 @@ namespace OpenCorporates.Tests
         public void SearchCallReturnsCompanyList()
         {
             var httpClient = new HttpClient();
-            var client = new CompanySearchClient(httpClient, Key);
+            var client = new CompanySearchClient(httpClient, Key)
+            {
+                OrderByScore = true,
+                ExcludeInactive = true,
+                Normalise = true
+            };
 
-            var companyResponse = client.GetAsync("UNITED UTILITIES WATER PLC").Result;
+            var companyResponse = client.GetAsync("Alliance Medical Limited", "gb").Result;
 
             Assert.NotZero(companyResponse.Results.Companies.Count);
         }

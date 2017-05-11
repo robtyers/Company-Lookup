@@ -51,6 +51,8 @@
     <Compile Include="Clients\CompanyDetailClient.cs" />
     <Compile Include="Clients\CompanyNetworkClient.cs" />
     <Compile Include="Clients\ICompanyDetailClient.cs" />
+    <Compile Include="Clients\ICompanyNetworkClient.cs" />
+    <Compile Include="Clients\ICompanySearchClient.cs" />
     <Compile Include="Json\IDefaultResolver.cs" />
     <Compile Include="Models\BaseResponse.cs" />
     <Compile Include="Models\BaseResult.cs" />

@@ -20,8 +20,6 @@ namespace CompanyIndexer
                 foreach (var outputRow in outputRows)
                 {
                     outputFile.WriteLine(FormatOutPutRow(outputRow));
-                    foreach (var parent in outputRow.Parents)
-                        outputFile.WriteLine(FormatParentOutputRow(parent));
                 }
             }
         }
@@ -32,6 +30,8 @@ namespace CompanyIndexer
 
             line.Append("\"Original Company Name\"");
             line.Append(string.Concat(",", "\"Resolved Company Name\""));
+            line.Append(string.Concat(",", "\"Parent Company Name\""));
+            line.Append(string.Concat(",", "\"Industry Code(s)\""));
             line.Append(string.Concat(",", "\"Current Status\""));
             line.Append(string.Concat(",", "\"Company Type\""));
             line.Append(string.Concat(",", "\"Jurisdiction Code\""));
@@ -46,6 +46,8 @@ namespace CompanyIndexer
 
             line.Append(string.Concat("\"", outputRow.OriginalCompanyName, "\""));
             line.Append(string.Concat(",", "\"", outputRow.ResolvedCompanyName, "\""));
+            line.Append(string.Concat(",", "\"", outputRow.ParentCompanyName, "\""));
+            line.Append(string.Concat(",", "\"", outputRow.IndustryCodes, "\""));
             line.Append(string.Concat(",", "\"", outputRow.CurrentStatus, "\""));
             line.Append(string.Concat(",", "\"", outputRow.CompanyType, "\""));
             line.Append(string.Concat(",", "\"", outputRow.JurisdictionCode, "\""));
@@ -53,48 +55,30 @@ namespace CompanyIndexer
             
             return line.ToString();
         }
-
-        private static string FormatParentOutputRow(CompanyDetail parent)
-        {
-            var line = new StringBuilder();
-            
-            line.Append(string.Concat("\"", "(Parent)", "\""));
-            line.Append(string.Concat(",", "\"", parent.ResolvedName, "\""));
-            line.Append(string.Concat(",", "\"", string.Empty, "\""));
-            line.Append(string.Concat(",", "\"", string.Empty, "\""));
-            line.Append(string.Concat(",", "\"", string.Empty, "\""));
-            line.Append(string.Concat(",", "\"", parent.OpenCorporatesUrl, "\""));
-
-            return line.ToString();
-        }
+        
         public class OutputRow
         {
             public OutputRow(string companyName, Company company)
             {
                 OriginalCompanyName = companyName;
                 ResolvedCompanyName = company.Name;
+                ParentCompanyName = string.Empty;
                 CompanyNumber = company.CompanyNumber;
                 CurrentStatus = company.CurrentStatus;
                 OpenCorporatesUrl = company.OpencorporatesUrl;
                 CompanyType = company.CompanyType;
                 JurisdictionCode = company.JurisdictionCode;
-                Parents = new List<CompanyDetail>();
             }
 
             public string ResolvedCompanyName { get; set; }
+            public string ParentCompanyName { get; set; }
             public string CurrentStatus { get; set; }
             public string OpenCorporatesUrl { get; set; }
             public string CompanyNumber { get; set; }
             public string OriginalCompanyName { get; }
             public string CompanyType { get; }
             public string JurisdictionCode { get; }
-            public List<CompanyDetail> Parents { get; set; }
-        }
-
-        public class CompanyDetail
-        {
-            public string ResolvedName { get; set; }
-            public string OpenCorporatesUrl { get; set; }
+            public string IndustryCodes { get; set; }
         }
     }
 }

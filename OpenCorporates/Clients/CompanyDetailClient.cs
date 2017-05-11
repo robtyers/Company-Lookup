@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using OpenCorporates.Models;
@@ -9,7 +10,7 @@ namespace OpenCorporates.Clients
     public class CompanyDetailClient : BaseClient, ICompanyDetailClient
     {
         // {0} = Jurisdiction Code {1} = Company Number
-        private const string QueryString = "v0.4/companies/{0}/{1}?sparse=true";
+        private const string QueryString = "/companies/{0}/{1}";
 
         public CompanyDetailClient(HttpClient client, string apiKey) : base(client, apiKey)
         {
@@ -25,11 +26,26 @@ namespace OpenCorporates.Clients
                 throw new ArgumentException("Argument cannot be empty", nameof(companyNumber));
 
             var queryString = GetQueryString(jurisdiction, companyNumber);
-            var response = await Client.GetAsync(queryString);
+            var result = string.Empty;
+            var cnt = 0;
 
-            response.EnsureSuccessStatusCode();
-
-            var result = await response.Content.ReadAsStringAsync();
+            do
+            {
+                try
+                {
+                    var response = await Client.GetAsync(queryString);
+                    response.EnsureSuccessStatusCode();
+                    result = await response.Content.ReadAsStringAsync();
+                    break;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    Thread.Sleep(3000);
+                    cnt++;
+                }
+            } while (cnt < 3);
+            
             return JsonConvert.DeserializeObject<CompanyResponse>(result, SerializerSettings);
         }
 

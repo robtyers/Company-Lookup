@@ -13,6 +13,7 @@ namespace CompanyIndexer
     {
         private readonly ICompanySearchClient _searchClient;
         private readonly ICompanyNetworkClient _networkClient;
+        private readonly ICompanyDetailClient _detailClient;
         private readonly ILog _log;
 
         private int _errorCount = 0;
@@ -28,83 +29,87 @@ namespace CompanyIndexer
         public int NetworkConfidence { get; set; }
         public string JurisdictionCode { get; set; }
         public int MaxErrorCount { get; set; }
+        public int MaxRecursion { get; set; }
         public bool ShowInactive { get; set; }
 
-        public SearchService(ICompanySearchClient searchClient, ICompanyNetworkClient networkClient)
+        public SearchService(
+            ICompanySearchClient searchClient, ICompanyNetworkClient networkClient, ICompanyDetailClient detailClient, ILog log)
         {
             Delay = 1000;
             SearchDepth = 1;
             NetworkConfidence = 80;
             MaxErrorCount = 5;
+            MaxRecursion = 5;
             ShowInactive = false;
 
             _searchClient = searchClient;
             _networkClient = networkClient;
-        }
-
-        public SearchService(ICompanySearchClient searchClient, ICompanyNetworkClient networkClient, ILog log) : this(searchClient, networkClient)
-        {
+            _detailClient = detailClient;
             _log = log;
         }
 
-        public IEnumerable<ResultFile.OutputRow> ProcessCompanyNames(ICompanyRepository repository)
+        public IEnumerable<ResultFile.OutputRow> ProcessCompanies(ICompanyRepository repository)
         {
             var results = new List<ResultFile.OutputRow>();
 
             foreach (var companyName in repository.CompanyNames)
             {
-                Console.WriteLine("");
+                Console.WriteLine(string.Empty);
                 Thread.Sleep(Delay); // throttle calls to OpenCorporates
 
                 var cleanCompanyName = 
                     Replace.Aggregate(companyName, (current, entry) => current.Replace(entry.Key, entry.Value));
 
-                try
-                {
-                    ProcessCompanyName(cleanCompanyName, ref results);
-                }
-                catch (Exception e)
-                {
-                    HandleError(e);
-                }
+                ProcessCompany(cleanCompanyName, ref results);
             }
 
             return results;
         }
 
-        private void ProcessCompanyName(string cleanCompanyName, ref List<ResultFile.OutputRow> results)
+        private void ProcessCompany(string companyName, ref List<ResultFile.OutputRow> results)
         {
-            _log.Info($"Processing {cleanCompanyName}");
-            var companyList = GetCompanies(cleanCompanyName);
-            companyList = FilterByJurisdictionCode(companyList);
-            companyList = FilterByCurrentStatus(companyList);
+            _log.Info($"Processing {companyName}");
 
-            if (companyList.Count == 0)
+            try
             {
-                var outputRow = new ResultFile.OutputRow(cleanCompanyName, new Company() { Name = "(No match)" });
-                results.Add(outputRow);
+                var companyList = GetCompanyList(companyName);
+                companyList = FilterByJurisdictionCode(companyList);
+                companyList = FilterByCurrentStatus(companyList);
 
-                _log.Warn("No match.");
-                return;
+                if (companyList.Any())
+                {
+                    var searchDepth = SearchDepth > companyList.Count ? companyList.Count : SearchDepth;
+                    _log.Debug($"Processing Top {searchDepth} of {companyList.Count} matching companies");
+
+                    foreach (var cnt in Enumerable.Range(0, searchDepth))
+                    {
+                        var company = companyList.ElementAt(cnt).Company;
+                        var outputRow = new ResultFile.OutputRow(companyName, company);
+
+                        var detail = GetCompanyDetail(company);
+                        detail.Company.IndustryCodes.ForEach(
+                            i => outputRow.IndustryCodes += $"{i.IndustryCode.Code} ({i.IndustryCode.Description}); ");
+
+                        var parent = GetParentCompany(companyName, company.JurisdictionCode, company.CompanyNumber);
+                        outputRow.ParentCompanyName = 
+                            (parent == outputRow.ResolvedCompanyName || parent == companyName) ? string.Empty : parent;
+
+                        results.Add(outputRow);
+                    }
+                }
+                else
+                {
+                    _log.Warn("No match.");
+
+                    var outputRow = new ResultFile.OutputRow(companyName, new Company() { Name = string.Empty});
+                    results.Add(outputRow);
+                }
             }
-
-            var searchDepth = SearchDepth > companyList.Count ? companyList.Count : SearchDepth;
-            _log.Debug($"Processing Top {searchDepth} of {companyList.Count} matching companies");
-
-            foreach (var cnt in Enumerable.Range(0, searchDepth))
+            catch (Exception e)
             {
-                var company = companyList.ElementAt(cnt).Company;
-                var outputRow = new ResultFile.OutputRow(cleanCompanyName, company);
+                HandleError(e);
 
-                try
-                {
-                    ProcessParentCompanies(cleanCompanyName, company, outputRow);
-                }
-                catch (Exception e)
-                {
-                    HandleError(e);
-                }
-
+                var outputRow = new ResultFile.OutputRow(companyName, new Company() {Name = "(Error)"});
                 results.Add(outputRow);
             }
         }
@@ -120,11 +125,11 @@ namespace CompanyIndexer
 
         private List<CompanyListItem> FilterByJurisdictionCode(List<CompanyListItem> companyList)
         {
-            if (!string.IsNullOrEmpty(JurisdictionCode))
-            {
-                companyList = companyList.Where(cl => cl.Company.JurisdictionCode == JurisdictionCode).ToList();
-                _log.Debug($"Filtering companies by Jurisdiction Code: '{JurisdictionCode}' (Found {companyList.Count})");
-            }
+            if (string.IsNullOrEmpty(JurisdictionCode))
+                return companyList;
+
+            companyList = companyList.Where(cl => cl.Company.JurisdictionCode == JurisdictionCode).ToList();
+            _log.Debug($"Filtering companies by Jurisdiction Code: '{JurisdictionCode}' (Found {companyList.Count})");
 
             return companyList;
         }
@@ -133,38 +138,35 @@ namespace CompanyIndexer
         {
             const string active = "Active";
 
-            if (!ShowInactive)
-            {
-                companyList = companyList.Where(cl => cl.Company.CurrentStatus.Equals(active, StringComparison.InvariantCultureIgnoreCase)).ToList();
-                _log.Debug($"Filtering companies by Current Status: '{active}' (Found {companyList.Count})");
-            }
+            if (ShowInactive)
+                return companyList;
+
+            companyList = companyList.Where(cl => cl.Company.CurrentStatus.Equals(active, StringComparison.InvariantCultureIgnoreCase)).ToList();
+            _log.Debug($"Filtering companies by Current Status: '{active}' (Found {companyList.Count})");
 
             return companyList;
         }
-
-        private void ProcessParentCompanies(string cleanCompanyName, Company company, ResultFile.OutputRow outputRow)
+        
+        private string GetParentCompany(string companyName, string jurisdictionCode, string companyNumber, int cnt = 0)
         {
-            _log.Debug("Checking for parents");
-            var networkList = GetCompanyNetwork(company.JurisdictionCode, company.CompanyNumber);
+            _log.Debug($"Checking for parents for {companyName}");
+            var networkList = GetCompanyNetwork(jurisdictionCode, companyNumber);
 
-            var parents = networkList
-                .Where(nl => !nl.ParentName.Equals(cleanCompanyName))
-                .Where(nl => !string.IsNullOrEmpty(nl.ParentName));
+            var parent = networkList
+                .FirstOrDefault(nl => !nl.ParentName.Equals(companyName));
+                
+            if (parent == null)
+                return companyName;
 
-            foreach (var statement in parents)
-            {
-                _log.Debug($"Found {statement.ParentName}");
+            cnt++;
+            if (cnt == MaxRecursion)
+                return companyName;
 
-                outputRow.Parents.Add(
-                    new ResultFile.CompanyDetail()
-                    {
-                        ResolvedName = statement.ParentName,
-                        OpenCorporatesUrl = statement.ParentOpencorporatesUrl
-                    });
-            }
+            var url = parent.ParentOpencorporatesUrl.Split('/').Reverse().Take(2).Reverse().ToList();
+            return GetParentCompany(parent.ParentName, url[0], url[1], cnt);
         }
-
-        private List<CompanyListItem> GetCompanies(string companyName)
+        
+        private List<CompanyListItem> GetCompanyList(string companyName)
         {
             var response = _searchClient.GetAsync(companyName).Result;
             _log.Debug($"Total company matches: {response.Results.TotalCount}");
@@ -179,5 +181,14 @@ namespace CompanyIndexer
 
             return response.Results;
         }
+
+        private CompanyResult GetCompanyDetail(Company company)
+        {
+            var response = _detailClient.GetAsync(company.JurisdictionCode, company.CompanyNumber).Result;
+            _log.Debug($"Total industry type matches: {response.Results.Company.IndustryCodes.Count}");
+
+            return response.Results;
+        }
     }
 }
+

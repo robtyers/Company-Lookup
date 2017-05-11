@@ -17,9 +17,9 @@ namespace CompanyIndexer
         {
             try
             {
+                Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.WriteLine("Welcome to the Company Lookup Assistant!");
 
-                //BasicConfigurator.Configure();
                 XmlConfigurator.Configure();
 
                 var filename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConfigurationManager.AppSettings["Filename"]);
@@ -37,7 +37,7 @@ namespace CompanyIndexer
                 var searchService = InitialiseSearchService(httpClient, apiKey);
 
                 Log.Info("Starting search");
-                var results = searchService.ProcessCompanyNames(repository);
+                var results = searchService.ProcessCompanies(repository);
 
                 Log.Info("Saving results file");
                 var outputFilename = ResultFile.GetFilename(filename);
@@ -58,9 +58,10 @@ namespace CompanyIndexer
         private static SearchService InitialiseSearchService(HttpClient httpClient, string apiKey)
         {
             var searchClient = new CompanySearchClient(httpClient, apiKey);
+            var detailClient = new CompanyDetailClient(httpClient, apiKey);
             var networkClient = new CompanyNetworkClient(httpClient, apiKey);
 
-            return new SearchService(searchClient, networkClient, Log)
+            return new SearchService(searchClient, networkClient, detailClient, Log)
             {
                 Delay = int.Parse(ConfigurationManager.AppSettings["DelayInMs"]),
                 NetworkConfidence = int.Parse(ConfigurationManager.AppSettings["NetworkConfidence"]),
