@@ -5,10 +5,10 @@ using System.IO;
 using System.Net.Http;
 using log4net;
 using log4net.Config;
-using OpenCalais.Clients;
 using OpenCorporates.Clients;
+using OpenDemocracy.Repository;
 
-namespace CompanyIndexer
+namespace OpenCorporates.Indexer
 {
     class Program
     {
@@ -17,28 +17,24 @@ namespace CompanyIndexer
         static void Main(string[] args)
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("Welcome to the Company Lookup Assistant!");
+            Console.WriteLine("Welcome to the OpenCorporates Lookup Assistant!");
 
             XmlConfigurator.Configure();
 
             var filename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConfigurationManager.AppSettings["Filename"]);
             Log.Info($"Loading {filename}");
             var repository = new CompanyRepository(filename);
-
-
-
-
+            
             try
             {
                 Log.Info("Initialising OpenCorporates client");
-                var openCorporatesApiKey = ConfigurationManager.AppSettings["OpenCorporatesApiKey"];
-                var openCalaisApiKey = ConfigurationManager.AppSettings["OpenCalaisApiKey"];
-
+                var apiKey = ConfigurationManager.AppSettings["ApiKey"];
+                
                 Log.Info("Checking OpenCorporates account status");
-                CheckOpenCorporatesAccountStatus(openCorporatesApiKey, new HttpClient());
+                CheckAccountStatus(apiKey);
 
                 Log.Info("Initialising search service");
-                var searchService = InitialiseSearchService(openCorporatesApiKey, openCalaisApiKey);
+                var searchService = InitialiseSearchService(apiKey);
 
                 Log.Info("Starting search");
                 var results = searchService.ProcessCompanies(repository);
@@ -59,21 +55,13 @@ namespace CompanyIndexer
             Console.ReadKey();
         }
 
-        private static SearchService InitialiseSearchService(string openCorporatesApiKey, string openCalaisApiKey)
+        private static SearchService InitialiseSearchService(string openCorporatesApiKey)
         {
-            var openCorporatesHttpClient = new HttpClient();
-            var searchClient = new CompanySearchClient(openCorporatesHttpClient, openCorporatesApiKey);
-            var detailClient = new CompanyDetailClient(openCorporatesHttpClient, openCorporatesApiKey);
-            var networkClient = new CompanyNetworkClient(openCorporatesHttpClient, openCorporatesApiKey);
-
-            var entitySearchClient = default(EntitySearchClient);
-            if (bool.Parse(ConfigurationManager.AppSettings["OpenCalaisEnabled"]))
-            {
-                var openCalaisHttpClient = new HttpClient();
-                entitySearchClient = new EntitySearchClient(openCalaisHttpClient, openCalaisApiKey);
-            }
-                
-            return new SearchService(searchClient, networkClient, detailClient, entitySearchClient,  Log)
+            var searchClient = new CompanySearchClient(new HttpClient(), openCorporatesApiKey);
+            var detailClient = new CompanyDetailClient(new HttpClient(), openCorporatesApiKey);
+            var networkClient = new CompanyNetworkClient(new HttpClient(), openCorporatesApiKey);
+            
+            return new SearchService(searchClient, networkClient, detailClient, Log)
             {
                 Delay = int.Parse(ConfigurationManager.AppSettings["DelayInMs"]),
                 NetworkConfidence = int.Parse(ConfigurationManager.AppSettings["NetworkConfidence"]),
@@ -84,11 +72,11 @@ namespace CompanyIndexer
             };
         }
 
-        private static void CheckOpenCorporatesAccountStatus(string apiKey, HttpClient httpClient)
+        private static void CheckAccountStatus(string apiKey)
         {
             if (string.IsNullOrEmpty(apiKey)) return;
 
-            var accountStatusClient = new AccountStatusClient(httpClient, apiKey);
+            var accountStatusClient = new AccountStatusClient(new HttpClient(), apiKey);
             Log.Info(accountStatusClient.GetAsync().Result);
 
             Console.WriteLine("Press any key to continue.");

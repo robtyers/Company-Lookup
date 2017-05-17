@@ -1,13 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26228.4
+VisualStudioVersion = 15.0.26430.6
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenCorporates", "OpenCorporates\OpenCorporates.csproj", "{014AB04F-258C-4230-8C14-57702FEE322D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenCorporates.Tests", "OpenCorporates.Tests\OpenCorporates.Tests.csproj", "{ED1BE320-0F8D-4198-A56B-E3EC47DF0571}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompanyIndexer", "CompanyIndexer\CompanyIndexer.csproj", "{DF71A116-F5BE-4440-B80D-C239CD8524AA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenCalais", "OpenCalais\OpenCalais.csproj", "{286C9FAB-002B-4AB4-AAE2-8589C0E74EFE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenCorporates.Indexer", "OpenCorporates.Indexer\OpenCorporates.Indexer.csproj", "{CB99220D-C77D-49D4-B458-2FB1F9789E8C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenCalais.Indexer", "OpenCalais.Indexer\OpenCalais.Indexer.csproj", "{8591AE56-C444-4362-B5B4-42AC00C0A694}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenDemocracy.Repository", "OpenDemocracy.Repository\OpenDemocracy.Repository.csproj", "{5C3D53EC-0E29-42E4-988C-F89540015694}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +29,22 @@ Global
 		{ED1BE320-0F8D-4198-A56B-E3EC47DF0571}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ED1BE320-0F8D-4198-A56B-E3EC47DF0571}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ED1BE320-0F8D-4198-A56B-E3EC47DF0571}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DF71A116-F5BE-4440-B80D-C239CD8524AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DF71A116-F5BE-4440-B80D-C239CD8524AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DF71A116-F5BE-4440-B80D-C239CD8524AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DF71A116-F5BE-4440-B80D-C239CD8524AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{286C9FAB-002B-4AB4-AAE2-8589C0E74EFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{286C9FAB-002B-4AB4-AAE2-8589C0E74EFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{286C9FAB-002B-4AB4-AAE2-8589C0E74EFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{286C9FAB-002B-4AB4-AAE2-8589C0E74EFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CB99220D-C77D-49D4-B458-2FB1F9789E8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB99220D-C77D-49D4-B458-2FB1F9789E8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB99220D-C77D-49D4-B458-2FB1F9789E8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB99220D-C77D-49D4-B458-2FB1F9789E8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8591AE56-C444-4362-B5B4-42AC00C0A694}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8591AE56-C444-4362-B5B4-42AC00C0A694}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8591AE56-C444-4362-B5B4-42AC00C0A694}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8591AE56-C444-4362-B5B4-42AC00C0A694}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C3D53EC-0E29-42E4-988C-F89540015694}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C3D53EC-0E29-42E4-988C-F89540015694}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C3D53EC-0E29-42E4-988C-F89540015694}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C3D53EC-0E29-42E4-988C-F89540015694}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

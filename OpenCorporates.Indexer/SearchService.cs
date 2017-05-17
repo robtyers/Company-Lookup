@@ -3,20 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using log4net;
-using OpenCalais.Clients;
 using OpenCorporates.Clients;
 using OpenCorporates.Models;
 using OpenCorporates.Models.Entities;
+using OpenDemocracy.Repository;
 
-namespace CompanyIndexer
+namespace OpenCorporates.Indexer
 {
     public class SearchService
     {
         private readonly ICompanySearchClient _searchClient;
         private readonly ICompanyNetworkClient _networkClient;
         private readonly ICompanyDetailClient _detailClient;
-        private readonly IEntitySearchClient _entitySearchClient;
-
         private readonly ILog _log;
 
         private int _errorCount = 0;
@@ -36,7 +34,7 @@ namespace CompanyIndexer
         public bool ShowInactive { get; set; }
 
         public SearchService(
-            ICompanySearchClient searchClient, ICompanyNetworkClient networkClient, ICompanyDetailClient detailClient, IEntitySearchClient entitySearchClient, ILog log)
+            ICompanySearchClient searchClient, ICompanyNetworkClient networkClient, ICompanyDetailClient detailClient, ILog log)
         {
             Delay = 1000;
             SearchDepth = 1;
@@ -48,7 +46,6 @@ namespace CompanyIndexer
             _searchClient = searchClient;
             _networkClient = networkClient;
             _detailClient = detailClient;
-            _entitySearchClient = entitySearchClient;
             _log = log;
         }
 
@@ -93,12 +90,20 @@ namespace CompanyIndexer
                         var detail = GetCompanyDetail(company);
                         detail.Company.IndustryCodes.ForEach(
                             i => outputRow.IndustryCodes += $"{i.IndustryCode.Code} ({i.IndustryCode.Description}); ");
+                        try
+                        {
+                            var parent = GetParentCompany(companyName, company.JurisdictionCode, company.CompanyNumber);
+                            outputRow.ParentCompanyName =
+                                (parent == outputRow.ResolvedCompanyName || parent == companyName)
+                                    ? string.Empty
+                                    : parent;
 
-                        var parent = GetParentCompany(companyName, company.JurisdictionCode, company.CompanyNumber);
-                        outputRow.ParentCompanyName = 
-                            (parent == outputRow.ResolvedCompanyName || parent == companyName) ? string.Empty : parent;
-
-
+                        }
+                        catch (Exception e)
+                        {
+                            _log.Error(e.Message, e);
+                            outputRow.ParentCompanyName = "(error)";
+                        }
 
                         results.Add(outputRow);
                     }
